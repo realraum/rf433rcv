@@ -161,7 +161,7 @@ void setup()
   digitalWrite(RF433_PIN, LOW);  // turn of pullup resistors 
 
   Serial.begin(57600);
-  Serial.println("starting timer");
+//  Serial.println("starting timer");
   start_timer();
 }
 

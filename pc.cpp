@@ -4,33 +4,20 @@ int main()
 {
   unsigned char c =0;
   unsigned char sym =0;
-  unsigned char old_sym =0;
-  int counter = 0;
-  while( 1)
+  int counter = 1000;
+  while( counter--)
   {
     std::cin >> c;
     for(int i = 0; i<8; i++)
     {
       sym = c & (1<<7);
-      if (sym == old_sym)
-      {      
-	      counter++;
-      } else {
-	if (counter > 30 )
-	{
-	  std::cout << std::endl;
-	}
-	counter = 0;
-      }
-
       if( sym)
       {
-        std::cout << 'X';
+        std::cout << "1,";
       } else {
-        std::cout << '_';
+        std::cout << "0,";
       }
       c<<=1;
-      old_sym=sym;
     }
   }
 }
