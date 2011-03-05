@@ -115,9 +115,20 @@ void stop_timer() // stop the timer
   TIMSK1 = 0; // disable timer interrupt
 }
 
+byte rf433_data=0;
+byte rf433_cnt=0;
 ISR(TIMER1_COMPA_vect)
 {
-  digitalRead(RF433_PIN);
+  rf433_data<<=1;
+  if (digitalRead(RF433_PIN) == HIGH)
+    rf433_data |=1;
+  rf433_cnt++;
+  if (rf433_cnt>7)
+  {
+    Serial.print(rf433_data);
+    rf433_cnt=0;
+    rf433_data=0;
+  }
 }
 
 //unsigned long wm_start_[3]={0,0,0};
@@ -150,6 +161,7 @@ void setup()
   digitalWrite(RF433_PIN, LOW);  // turn of pullup resistors 
 
   Serial.begin(57600);
+  Serial.println("starting timer");
   start_timer();
 }
 
