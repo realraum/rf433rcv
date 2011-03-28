@@ -115,20 +115,46 @@ void stop_timer() // stop the timer
   TIMSK1 = 0; // disable timer interrupt
 }
 
-byte rf433_data=0;
-byte rf433_cnt=0;
+union {
+  byte uint8[4];
+  uint32_t uint32;
+} rf433_data;
+byte rf433_hi_cnt=0;
+byte rf433_lo_cnt=0;
+byte last_sample=0;
+int valid=0;
 ISR(TIMER1_COMPA_vect)
 {
-  rf433_data<<=1;
-  if (digitalRead(RF433_PIN) == HIGH)
-    rf433_data |=1;
-  rf433_cnt++;
-  if (rf433_cnt>7)
+  byte sample = digitalRead(RF433_PIN);
+  if (last_sample!=sample && sample==HIGH)
   {
-    Serial.print(rf433_data);
-    rf433_cnt=0;
-    rf433_data=0;
+    if ( rf433_lo_cnt > 2 && rf433_lo_cnt<6 && rf433_hi_cnt>10 && rf433_hi_cnt < 14)
+    {
+      rf433_data.uint32<<=1;
+      rf433_data.uint32|=1;
+      valid++;
+    } else if (rf433_hi_cnt > 2 && rf433_hi_cnt<6 && rf433_lo_cnt>10 && rf433_lo_cnt < 14) {
+      rf433_data.uint32<<=1;
+      valid++;
+    } else if (rf433_hi_cnt > 2 && rf433_hi_cnt<6 && rf433_lo_cnt>120 && rf433_lo_cnt < 128 && valid >=24) {
+      //rf433_data.uint8[3]=0;
+      //Serial.print(rf433_data.uint32);
+      Serial.print(rf433_data.uint8[0],BYTE);
+      Serial.print(rf433_data.uint8[1],BYTE);
+      Serial.print(rf433_data.uint8[2],BYTE);
+      //Serial.print(rf433_data.uint8[3],BYTE);
+    } else {
+      valid=0;
+      rf433_data.uint32=0;
+    }
+    rf433_hi_cnt=0;
+    rf433_lo_cnt=0;
   }
+  if (sample == HIGH)
+    rf433_hi_cnt++;
+  else 
+    rf433_lo_cnt++;
+  last_sample=sample;
 }
 
 //unsigned long wm_start_[3]={0,0,0};
