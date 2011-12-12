@@ -14,7 +14,7 @@ F_CPU = 16000000
 
 RESET_TTY_DIR=../reset_tty/
 RESET_TTY=$(RESET_TTY_DIR)reset_tty
-ARDUINO = $(INSTALL_DIR)/hardware/cores/arduino
+ARDUINO = $(INSTALL_DIR)/hardware/teensy/cores/teensy
 AVR_TOOLS_PATH = /usr/bin
 SRC =  $(ARDUINO)/pins_arduino.c $(ARDUINO)/wiring.c \
 $(ARDUINO)/wiring_analog.c $(ARDUINO)/wiring_digital.c \
@@ -94,7 +94,7 @@ all: applet_files build sizeafter
 
 build: elf hex 
 
-applet_files: $(TARGET).pde
+applet_files: $(TARGET).cpp
 	# Here is the "preprocessing".
 	# It creates a .cpp file based with the same name as the .pde file.
 	# On top of the new .cpp file comes the WProgram.h header.
@@ -103,9 +103,7 @@ applet_files: $(TARGET).pde
 	# refer to this new, automatically generated, file. 
 	# Not the original .pde file you actually edit...
 	test -d applet || mkdir applet
-	echo '#include "WProgram.h"' > applet/$(TARGET).cpp
-	cat $(TARGET).pde >> applet/$(TARGET).cpp
-	cat $(ARDUINO)/main.cxx >> applet/$(TARGET).cpp
+	cp arduino/hardware/teensy/cores/teensy/WProgram.h .
 
 elf: applet/$(TARGET).elf
 hex: applet/$(TARGET).hex
@@ -163,7 +161,7 @@ extcoff: $(TARGET).elf
 	$(NM) -n $< > $@
 
 	# Link: create ELF output file from library.
-applet/$(TARGET).elf: $(TARGET).pde applet/core.a 
+applet/$(TARGET).elf: $(TARGET).cpp applet/core.a 
 	$(CC) $(ALL_CFLAGS) -o $@ applet/$(TARGET).cpp -L. applet/core.a $(LDFLAGS)
 
 applet/core.a: $(OBJ)

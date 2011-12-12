@@ -5,9 +5,10 @@ int main()
   unsigned char c =0;
   unsigned char sym =0;
   int counter = 1000;
-  while( counter--)
+//  while( counter--)
+//  {
+  while(  std::cin >> c)
   {
-    std::cin >> c;
     for(int i = 0; i<8; i++)
     {
       sym = c & (1<<7);
