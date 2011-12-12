@@ -34,8 +34,8 @@
  **************************************************************************/
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER	L"MfgName"
-#define STR_PRODUCT		L"Teensy Raw HID Example"
+#define STR_MANUFACTURER	L"realraum"
+#define STR_PRODUCT		L"rf433rxtx"
 
 // These 4 numbers identify your device.  Set these to
 // something that is (hopefully) not used by any others!
