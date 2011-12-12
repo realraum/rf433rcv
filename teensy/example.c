@@ -29,16 +29,14 @@
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
-volatile uint8_t do_output=0;
+volatile uint16_t output_count=0;
+volatile uint8_t active_buffer=0;
+volatile uint8_t send_buffer=0;
 uint8_t read_buffer[64];
-uint8_t write_buffer[64];
+uint8_t write_buffer[2][64];
 
 int main(void)
 {
-  int8_t r;
-  uint8_t i;
-  uint16_t val, count=0;
-
   // set for 16 MHz clock
   CPU_PRESCALE(0);
   DDRF|=3;
@@ -61,10 +59,13 @@ int main(void)
   _delay_ms(1000);
   while (1) {
     // if received data, do something with it
-    r = usb_rawhid_recv(read_buffer, 0);
-    if (r>0)
-      usb_rawhid_send(read_buffer, 50);
-
+    //r = usb_rawhid_recv(read_buffer, 0);
+    //if (r>0)
+    if (send_buffer)
+    {
+      send_buffer=0;
+      usb_rawhid_send(write_buffer[active_buffer?0:1], 45);
+    }
   }
 }
 
@@ -72,8 +73,14 @@ int main(void)
 ISR(TIMER0_COMPA_vect)
 {
   PORTF^=2;
-
+  write_buffer[active_buffer][output_count/8]<<=1;
+  write_buffer[active_buffer][output_count++/8]|=PINB&1;
+  if (output_count>=64*8)
+  {
+    output_count=0;
+    active_buffer=active_buffer?0:1;
+    send_buffer=1;
+  }
 }
-
 
 

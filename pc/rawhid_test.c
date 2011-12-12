@@ -30,7 +30,7 @@ int main()
 			return -1;
 		}
 	}
-	printf("found rawhid device\n");
+//	printf("found rawhid device\n");
 
 	while (1) {
 		// check if any Raw HID packet has arrived
@@ -40,13 +40,18 @@ int main()
 			rawhid_close(0);
 			return 0;
 		}
-		if (num > 0) {
-			printf("\nrecv %d bytes:\n", num);
-			for (i=0; i<num; i++) {
-				printf("%02X ", buf[i] & 255);
-				if (i % 16 == 15 && i < num-1) printf("\n");
-			}
-			printf("\n");
+		if (num == 64) {
+		//	printf("\nrecv %d bytes:\n", num);
+			  for (i=0; i<64*8; i++) {
+          if (buf[i/8] & 0x80)
+          {
+            printf("1");
+          } else {
+            printf("0");
+          }
+          printf(",");
+          buf[i/8]<<=1;
+        }
 		}
 		// check if any input on stdin
 		while ((c = get_keystroke()) >= 32) {
