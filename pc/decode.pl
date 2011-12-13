@@ -61,7 +61,7 @@ if (my $delemiter = $ARGV[0])
     $binarydata[int($bitcount/8)]|=$bits;
     $bitcount++;
   }
-  $binarydata[int($bitcount/8)]<<= 7 - ($bitcount % 8);
+  $binarydata[int($bitcount/8)]<<= 8 - ($bitcount % 8) if $bitcount % 8;
   my @chars = map { chr($_) } @binarydata; 
   print STDERR join '',@chars;
 #  print STDERR "\ns\x04"; # send 4 times

@@ -33,13 +33,13 @@ volatile uint16_t output_count=0;
 volatile uint8_t active_buffer=0;
 volatile uint16_t send_buffer=0;
 volatile uint8_t capture=0;
-volatile uint8_t rf_send=0; //count of bits in rf_send_buffer that should be sent
-volatile uint8_t rf_send_reload=0; //count of bits in rf_send_buffer that should be sent
+volatile uint16_t rf_send=0; //count of bits in rf_send_buffer that should be sent
+volatile uint16_t rf_send_reload=0; //count of bits in rf_send_buffer that should be sent
 volatile uint8_t rf_send_reload_count=0; // number of repetitions (times rf_send gets reloaded;
 uint8_t read_buffer[64]; // buffer for reading usb signals
 uint8_t write_buffer[2][64]; // buffer for writing usb signals
 uint8_t rf_send_buffer[RF_SEND_BUFFER_LEN_MAX]; // buffer for sending rf433 signals
-uint8_t rf_send_buffer_len=0;
+volatile uint16_t rf_send_buffer_len=0;
 
 
 void reset()
@@ -113,12 +113,12 @@ int main(void)
         capture=0;
       else if (read_buffer[0]=='f') //fill send buffer
       {
-        int8_t byte_rem = r-1;
-        while(byte_rem && rf_send_buffer_len<RF_SEND_BUFFER_LEN_MAX)
+        int8_t buffer_pos = 1;
+        while(buffer_pos < r && rf_send_buffer_len<RF_SEND_BUFFER_LEN_MAX)
         {
-          rf_send_buffer[rf_send_buffer_len]=read_buffer[r-byte_rem];
+          rf_send_buffer[rf_send_buffer_len]=read_buffer[buffer_pos];
           rf_send_buffer_len++;
-          byte_rem--;
+          buffer_pos++;
         }
       }
       else if (read_buffer[0]=='c') // clear send buffer
@@ -128,11 +128,16 @@ int main(void)
       else if (read_buffer[0]=='s') //send
       {
         capture=0;
-        if (r>2)
-          rf_send_reload=rf_send_buffer_len*8-read_buffer[2]; // substract bit offset
-        else
-          rf_send_reload=rf_send_buffer_len*8;
+        //if (r>2)
+        //  rf_send_reload=rf_send_buffer_len*8-read_buffer[2]; // substract bit offset
+        //else
+        usb_rawhid_send(rf_send_buffer, 145);
+        rf_send=0;
+        rf_send_reload=rf_send_buffer_len*8;
         rf_send_reload_count=read_buffer[1];  
+        //read_buffer[0]=rf_send_reload;
+        //read_buffer[1]=rf_send_reload>>8;
+        //read_buffer[2]=0;
       }
     }
     if (send_buffer)
@@ -149,18 +154,19 @@ ISR(TIMER0_COMPA_vect)
   PORTF^=2;
   if (rf_send)
   {
-    if (rf_send_buffer[rf_send/8] & 0x80)
+    if ( ( rf_send_buffer[rf_send/8] >> ( (rf_send%8)?8-(rf_send%8):0 ) ) & 1)
     {
-     PORTF|=1;
-    } else {
      PORTF&=~1;
+    } else {
+     PORTF|=1;
     }
-    rf_send_buffer[rf_send/8]<<=1;
+    //rf_send_buffer[rf_send/8]>>=1;
     rf_send--;
   } else if (rf_send_reload_count) {
     rf_send=rf_send_reload;
+    rf_send_reload_count--;
   } else {
-    PORTF&=~1; 
+    PORTF&=~1;
     if (capture) {
       write_buffer[active_buffer][output_count/8]<<=1;
       write_buffer[active_buffer][output_count++/8]|=PINB&1;

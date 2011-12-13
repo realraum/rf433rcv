@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #if defined(OS_LINUX) || defined(OS_MACOSX)
 #include <sys/ioctl.h>
@@ -14,12 +15,15 @@
 
 static char get_keystroke(void);
 
+void sendstr(char * tosend)
+{
+  rawhid_send(0, tosend, strlen(tosend),100);
+}
 
 int main (int argc, char *argv[])
 {
 	int i, r, num;
 	char c, buf[64];
-
 	// C-based example is 16C0:0480:FFAB:0200
 	r = rawhid_open(1, 0x16C0, 0x0480, 0xFFAB, 0x0200);
 	if (r <= 0) {
@@ -36,12 +40,19 @@ int main (int argc, char *argv[])
     FILE * f = fopen (argv[1], "r");
     if (!f)
       return -3;
+    sendstr("c"); // clear the buffer  
     buf[0]='f';  
-    size_t len= fread(buf+1, 63, 1, f);
-    rawhid_send(0, buf, 1+len, 100);
-    buf[0]='s';
-    buf[1]=4;
-    rawhid_send(0, buf, 2, 100);
+    size_t len= fread(buf+1, 1, 63, f);
+    for(i=len+1;i<64;i++)
+      buf[i]=0xff;
+    rawhid_send(0, buf, 64, 100); //fill the buffer
+    sendstr("s\x10"); // send 4 times
+    len = rawhid_recv(0, buf, 64, 255);
+    for(i=0;i<len;i++)
+    {
+      printf("%02x ",(unsigned char) buf[i]);
+    }  
+    printf("\n");
     return 0;
   } else {
     while (1) {
