@@ -52,5 +52,17 @@ if (my $delemiter = $ARGV[0])
     }
   }
   chop $seq;
-  print STDERR "$seq\n";
+  # print "$seq\n";
+  my $bitcount=0;
+  my @binarydata;
+  for my $bits (split /,/,$seq)
+  {
+    $binarydata[int($bitcount/8)]<<=1;
+    $binarydata[int($bitcount/8)]|=$bits;
+    $bitcount++;
+  }
+  $binarydata[int($bitcount/8)]<<= 7 - ($bitcount % 8);
+  my @chars = map { chr($_) } @binarydata; 
+  print STDERR join '',@chars;
 }
+

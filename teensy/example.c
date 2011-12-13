@@ -45,7 +45,7 @@ int main(void)
   // 200*8 clock cycles, 100us
   TCCR0A = 1<<WGM01;
   TCCR0B = 1<<CS01;
-  OCR0A = 199;
+  OCR0A = 249;
   TCNT0 = 0;
   TIMSK0 = (1<<OCIE0A);
 
