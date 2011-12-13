@@ -55,7 +55,7 @@ if (my $delemiter = $ARGV[0])
   # print "$seq\n";
   my $bitcount=0;
   my @binarydata;
-  for my $bits (split /,/,$seq)
+  for my $bits (reverse split /,/,$seq)
   {
     $binarydata[int($bitcount/8)]<<=1;
     $binarydata[int($bitcount/8)]|=$bits;
@@ -64,5 +64,9 @@ if (my $delemiter = $ARGV[0])
   $binarydata[int($bitcount/8)]<<= 7 - ($bitcount % 8);
   my @chars = map { chr($_) } @binarydata; 
   print STDERR join '',@chars;
+#  print STDERR "\ns\x04"; # send 4 times
+#  print STDERR chr(8-($bitcount % 8)) if $bitcount % 8;
+  print "$bitcount total, offset ".($bitcount % 8)." bits\n";
+  print ($bitcount/8 ," bytes (must be <= 63)\n");
 }
 

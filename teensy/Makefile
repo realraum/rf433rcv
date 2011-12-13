@@ -444,6 +444,7 @@ gccversion :
 
 # Program the device.  
 program: $(TARGET).hex $(TARGET).eep
+	echo -n r | ../pc/rawhid_test
 	~/teensy_loader_cli/teensy_loader_cli -mmcu=atmega32u4 -w $(TARGET).hex
 
 

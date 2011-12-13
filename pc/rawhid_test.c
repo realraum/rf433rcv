@@ -15,7 +15,7 @@
 static char get_keystroke(void);
 
 
-int main()
+int main (int argc, char *argv[])
 {
 	int i, r, num;
 	char c, buf[64];
@@ -31,38 +31,51 @@ int main()
 		}
 	}
 //	printf("found rawhid device\n");
-
-	while (1) {
-		// check if any Raw HID packet has arrived
-		num = rawhid_recv(0, buf, 64, 220);
-		if (num < 0) {
-			printf("\nerror reading, device went offline\n");
-			rawhid_close(0);
-			return 0;
-		}
-		if (num == 64) {
-		//	printf("\nrecv %d bytes:\n", num);
-			  for (i=0; i<64*8; i++) {
-          if (buf[i/8] & 0x80)
-          {
-            printf("1");
-          } else {
-            printf("0");
+  if (argc>1)
+  {
+    FILE * f = fopen (argv[1], "r");
+    if (!f)
+      return -3;
+    buf[0]='f';  
+    size_t len= fread(buf+1, 63, 1, f);
+    rawhid_send(0, buf, 1+len, 100);
+    buf[0]='s';
+    buf[1]=4;
+    rawhid_send(0, buf, 2, 100);
+    return 0;
+  } else {
+    while (1) {
+      // check if any Raw HID packet has arrived
+      num = rawhid_recv(0, buf, 64, 220);
+      if (num < 0) {
+        printf("\nerror reading, device went offline\n");
+        rawhid_close(0);
+        return 0;
+      }
+      if (num == 64) {
+      //	printf("\nrecv %d bytes:\n", num);
+          for (i=0; i<64*8; i++) {
+            if (buf[i/8] & 0x80)
+            {
+              printf("1");
+            } else {
+              printf("0");
+            }
+            printf(",");
+            buf[i/8]<<=1;
           }
-          printf(",");
-          buf[i/8]<<=1;
+      }
+      // check if any input on stdin
+      while ((c = get_keystroke()) >= 32) {
+        printf("\ngot key '%c', sending...\n", c);
+        buf[0] = c;
+        for (i=1; i<64; i++) {
+          buf[i] = 0;
         }
-		}
-		// check if any input on stdin
-		while ((c = get_keystroke()) >= 32) {
-			printf("\ngot key '%c', sending...\n", c);
-			buf[0] = c;
-			for (i=1; i<64; i++) {
-				buf[i] = 0;
-			}
-			rawhid_send(0, buf, 64, 100);
-		}
-	}
+        rawhid_send(0, buf, 64, 100);
+      }
+    }
+  }  
 }
 
 #if defined(OS_LINUX) || defined(OS_MACOSX)
