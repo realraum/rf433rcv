@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-
+#include <sys/time.h>
 #if defined(OS_LINUX) || defined(OS_MACOSX)
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -13,17 +13,22 @@
 #include "hid.h"
 
 
-static char get_keystroke(void);
-
 void sendstr(char * tosend)
 {
   rawhid_send(0, tosend, strlen(tosend),1000);
 }
 
+int mtime_diff(struct timeval high,struct timeval low)
+{
+  int result=1000*(high.tv_sec-low.tv_sec);
+  result+=high.tv_usec/1000-low.tv_usec/1000;
+  return result;
+}
+
 int main (int argc, char *argv[])
 {
 	int i, r, num;
-	char c, buf[64];
+	char buf[64];
 	// C-based example is 16C0:0480:FFAB:0200
 	r = rawhid_open(1, 0x16C0, 0x0480, 0xFFAB, 0x0200);
 	if (r <= 0) {
@@ -65,7 +70,11 @@ int main (int argc, char *argv[])
     printf("\n");
     return 0;
   } else {
-    while (1) {
+    struct timeval start_time,stop_time;
+    sendstr("b");
+    gettimeofday(&start_time,NULL);
+    gettimeofday(&stop_time,NULL);
+    while (mtime_diff(stop_time,start_time)<1000) {
       // check if any Raw HID packet has arrived
       num = rawhid_recv(0, buf, 64, 220);
       if (num < 0) {
@@ -74,7 +83,6 @@ int main (int argc, char *argv[])
         return 0;
       }
       if (num == 64) {
-      //	printf("\nrecv %d bytes:\n", num);
           for (i=0; i<64*8; i++) {
             if (buf[i/8] & 0x80)
             {
@@ -86,54 +94,9 @@ int main (int argc, char *argv[])
             buf[i/8]<<=1;
           }
       }
-      // check if any input on stdin
-      while ((c = get_keystroke()) >= 32) {
-        fprintf(stderr,"\ngot key '%c', sending...\n", c);
-        buf[0] = c;
-        for (i=1; i<64; i++) {
-          buf[i] = 0;
-        }
-        rawhid_send(0, buf, 64, 100);
-      }
+      gettimeofday(&stop_time,NULL);
     }
+    sendstr("e");
+    return 0;
   }  
 }
-
-#if defined(OS_LINUX) || defined(OS_MACOSX)
-// Linux (POSIX) implementation of _kbhit().
-// Morgan McGuire, morgan@cs.brown.edu
-static int _kbhit() {
-	static const int STDIN = 0;
-	static int initialized = 0;
-	int bytesWaiting;
-
-	if (!initialized) {
-		// Use termios to turn off line buffering
-		struct termios term;
-		tcgetattr(STDIN, &term);
-		term.c_lflag &= ~ICANON;
-		tcsetattr(STDIN, TCSANOW, &term);
-		setbuf(stdin, NULL);
-		initialized = 1;
-	}
-	ioctl(STDIN, FIONREAD, &bytesWaiting);
-	return bytesWaiting;
-}
-static char _getch(void) {
-	char c;
-	if (fread(&c, 1, 1, stdin) < 1) return 0;
-	return c;
-}
-#endif
-
-
-static char get_keystroke(void)
-{
-	if (_kbhit()) {
-		char c = _getch();
-		if (c >= 32) return c;
-	}
-	return 0;
-}
-
-

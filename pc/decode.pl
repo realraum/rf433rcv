@@ -53,11 +53,11 @@ if (defined $ARGV[0])
     {
       if ($start)
       { 
-        print "$counter\n";
+        print $counter-2."\n";
         last;
       } else {
         $start =1;
-        print "$counter ";
+        print $counter-1." ";
       }
     }
     $counter+=$data->[1];
