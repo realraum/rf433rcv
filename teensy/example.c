@@ -162,9 +162,9 @@ ISR(TIMER0_COMPA_vect)
   {
     if ( rf_send_buffer[rf_send_buf_pos/8] & (1<< (rf_send_buf_pos%8)))
     {
-     PORTF&=~1;
-    } else {
      PORTF|=1;
+    } else {
+     PORTF&=~1;
     }
     //rf_send_buffer[rf_send/8]>>=1;
     rf_send_buf_pos++;
