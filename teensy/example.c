@@ -113,7 +113,7 @@ int main(void)
         capture=0;
       else if (read_buffer[0]=='f') //fill send buffer
       {
-        uint8_t buffer_pos = 1;
+        int8_t buffer_pos = 1;
         if(!rf_send_buf_offset) {
           rf_send_buf_len=read_buffer[2] | (read_buffer[1]<<8);   //rf_send_buf_offset*8;
           buffer_pos+=2;
