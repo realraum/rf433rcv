@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use strict;
-my @data =  split /,/,<>;
+my @data =  split //,<>;
 
 my @statistics;
 

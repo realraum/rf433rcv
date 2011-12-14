@@ -82,13 +82,13 @@ int main (int argc, char *argv[])
             } else {
               printf("0");
             }
-            printf(",");
+            // printf(",");
             buf[i/8]<<=1;
           }
       }
       // check if any input on stdin
       while ((c = get_keystroke()) >= 32) {
-        printf("\ngot key '%c', sending...\n", c);
+        fprintf(stderr,"\ngot key '%c', sending...\n", c);
         buf[0] = c;
         for (i=1; i<64; i++) {
           buf[i] = 0;

@@ -4,7 +4,7 @@ import fileinput
 import numpy
 import pylab
 for datastr in fileinput.input():
-  data = numpy.array(datastr.split(","))
+  data=numpy.array(list(datastr))
   pylab.plot(range(len(data)),data)
 
           
