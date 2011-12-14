@@ -28,18 +28,18 @@
 #include "usb_rawhid.h"
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
-#define RF_SEND_BUFFER_LEN_MAX 128
+#define RF_SEND_BUFFER_LEN_MAX 502
 volatile uint16_t output_count=0;
 volatile uint8_t active_buffer=0;
 volatile uint16_t send_buffer=0;
 volatile uint8_t capture=0;
-volatile uint16_t rf_send=0; //count of bits in rf_send_buffer that should be sent
-volatile uint16_t rf_send_reload=0; //count of bits in rf_send_buffer that should be sent
-volatile uint8_t rf_send_reload_count=0; // number of repetitions (times rf_send gets reloaded;
+volatile uint16_t rf_send_buf_pos=0; //count of bits in rf_send_buffer that should be sent
+volatile uint16_t rf_send_buf_len=0; //count of bits in rf_send_buffer that should be sent
+volatile uint8_t rf_send_count=0; // number of repetitions (times rf_send gets reloaded;
 uint8_t read_buffer[64]; // buffer for reading usb signals
 uint8_t write_buffer[2][64]; // buffer for writing usb signals
 uint8_t rf_send_buffer[RF_SEND_BUFFER_LEN_MAX]; // buffer for sending rf433 signals
-volatile uint16_t rf_send_buffer_len=0;
+uint16_t rf_send_buf_offset=0;
 
 
 void reset()
@@ -85,10 +85,10 @@ int main(void)
   DDRF|=3;
   PORTF&=~1;
   // Configure timer 0 to generate a timer overflow interrupt every
-  // 200*8 clock cycles, 100us
+  // 100*8 clock cycles, 50us
   TCCR0A = 1<<WGM01;
   TCCR0B = 1<<CS01;
-  OCR0A = 249;
+  OCR0A = 99;
   TCNT0 = 0;
   TIMSK0 = (1<<OCIE0A);
 
@@ -113,37 +113,33 @@ int main(void)
         capture=0;
       else if (read_buffer[0]=='f') //fill send buffer
       {
-        int8_t buffer_pos = 1;
-        while(buffer_pos < r && rf_send_buffer_len<RF_SEND_BUFFER_LEN_MAX)
+        uint8_t buffer_pos = 1;
+        if(!rf_send_buf_offset) {
+          rf_send_buf_len=read_buffer[2] | (read_buffer[1]<<8);   //rf_send_buf_offset*8;
+          buffer_pos+=2;
+        }
+        while(buffer_pos < r && rf_send_buf_offset<RF_SEND_BUFFER_LEN_MAX)
         {
-          rf_send_buffer[rf_send_buffer_len]=read_buffer[buffer_pos];
-          rf_send_buffer_len++;
+          rf_send_buffer[rf_send_buf_offset]=read_buffer[buffer_pos];
+          rf_send_buf_offset++;
           buffer_pos++;
         }
       }
       else if (read_buffer[0]=='c') // clear send buffer
       {
-        rf_send_buffer_len=0;
+        rf_send_buf_offset=0;
       }
       else if (read_buffer[0]=='s') //send
       {
         capture=0;
-        //if (r>2)
-        //  rf_send_reload=rf_send_buffer_len*8-read_buffer[2]; // substract bit offset
-        //else
-        usb_rawhid_send(rf_send_buffer, 145);
-        rf_send=0;
-        rf_send_reload=rf_send_buffer_len*8;
-        rf_send_reload_count=read_buffer[1];  
-        //read_buffer[0]=rf_send_reload;
-        //read_buffer[1]=rf_send_reload>>8;
-        //read_buffer[2]=0;
+        rf_send_buf_pos=0;
+        rf_send_count=read_buffer[1]+1;  
       }
     }
     if (send_buffer)
     {
       send_buffer=0;
-      usb_rawhid_send(write_buffer[active_buffer?0:1], 45);
+      usb_rawhid_send(write_buffer[active_buffer?0:1], 23);
     }
   }
 }
@@ -152,19 +148,19 @@ int main(void)
 ISR(TIMER0_COMPA_vect)
 {
   PORTF^=2;
-  if (rf_send)
+  if (rf_send_count && rf_send_buf_pos<rf_send_buf_len)
   {
-    if ( ( rf_send_buffer[rf_send/8] >> ( (rf_send%8)?8-(rf_send%8):0 ) ) & 1)
+    if ( rf_send_buffer[rf_send_buf_pos/8] & (1<< (rf_send_buf_pos%8)))
     {
      PORTF&=~1;
     } else {
      PORTF|=1;
     }
     //rf_send_buffer[rf_send/8]>>=1;
-    rf_send--;
-  } else if (rf_send_reload_count) {
-    rf_send=rf_send_reload;
-    rf_send_reload_count--;
+    rf_send_buf_pos++;
+  } else if (rf_send_count) {
+    rf_send_buf_pos=0;
+    rf_send_count--;
   } else {
     PORTF&=~1;
     if (capture) {

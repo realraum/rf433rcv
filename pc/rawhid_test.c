@@ -17,7 +17,7 @@ static char get_keystroke(void);
 
 void sendstr(char * tosend)
 {
-  rawhid_send(0, tosend, strlen(tosend),100);
+  rawhid_send(0, tosend, strlen(tosend),1000);
 }
 
 int main (int argc, char *argv[])
@@ -40,14 +40,18 @@ int main (int argc, char *argv[])
     FILE * f = fopen (argv[1], "r");
     if (!f)
       return -3;
+    printf("Clearing Buffer\n");  
     sendstr("c"); // clear the buffer  
     buf[0]='f';  
-    size_t len= fread(buf+1, 1, 63, f);
-    for(i=len+1;i<64;i++)
-      buf[i]=0xff;
-    rawhid_send(0, buf, 64, 100); //fill the buffer
+    while ( fread(buf+1, 1, 63, f) )
+    {
+      
+      rawhid_send(0, buf, 64, 1000); //fill the buffer
+      printf("Sending Buffer\n");
+    }
+    printf("Executing Send command\n");
     sendstr("s\x10"); // send 4 times
-    len = rawhid_recv(0, buf, 64, 255);
+    size_t len = rawhid_recv(0, buf, 64, 255);
     for(i=0;i<len;i++)
     {
       printf("%02x ",(unsigned char) buf[i]);
