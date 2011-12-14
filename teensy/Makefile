@@ -46,8 +46,7 @@ TARGET = example
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC =	$(TARGET).c \
-	usb_rawhid.c \
-	analog.c
+	usb_rawhid.c
 
 
 # MCU name, you MUST set this to match the board you are using
@@ -444,7 +443,7 @@ gccversion :
 
 # Program the device.  
 program: $(TARGET).hex $(TARGET).eep
-	echo -n r | ../pc/rawhid_test || true
+	../pc/reset || true
 	~/teensy_loader_cli/teensy_loader_cli -mmcu=atmega32u4 -w $(TARGET).hex
 
 

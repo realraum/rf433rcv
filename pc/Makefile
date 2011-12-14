@@ -36,7 +36,7 @@ endif
 OBJS = $(PROG).o hid.o
 
 
-all: $(TARGET) compress uncompress
+all: $(TARGET) compress uncompress reset
 
 compress: compress.c
 	$(CC) -o compress compress.c
@@ -48,6 +48,11 @@ $(PROG): $(OBJS)
 	$(CC) -o $(PROG) $(OBJS) $(LIBS)
 	$(STRIP) $(PROG)
 
+
+reset: hid.o reset.o
+	$(CC) -o reset reset.o hid.o $(LIBS)
+	$(STRIP) reset
+
 $(PROG).exe: $(PROG)
 	cp $(PROG) $(PROG).exe
 
@@ -57,6 +62,9 @@ $(PROG).dmg: $(PROG)
 	hdiutil create -ov -volname "Raw HID Test" -srcfolder tmp $(PROG).dmg
 
 hid.o: hid_$(OS).c hid.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+reset.o: reset.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
