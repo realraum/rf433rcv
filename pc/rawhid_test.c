@@ -56,7 +56,7 @@ int main (int argc, char *argv[])
       printf("\n");
     }
     printf("Executing Send command\n");
-    sendstr("s\x10"); // send 4 times
+    sendstr("s\x20"); // send 32 times
     len = rawhid_recv(0, buf, 64, 255);
     for(i=0;i<len;i++)
     {
