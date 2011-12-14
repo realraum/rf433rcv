@@ -175,7 +175,7 @@ ISR(TIMER0_COMPA_vect)
     PORTF&=~1;
     if (capture) {
       write_buffer[active_buffer][output_count/8]<<=1;
-      write_buffer[active_buffer][output_count++/8]|=PINB&1;
+      write_buffer[active_buffer][output_count++/8]|=PIND&1;
       if (output_count>=64*8)
       {
         output_count=0;

@@ -22,51 +22,45 @@ for my $input (@data)
 
 for my $i (0..1)
 {
-  print "$i:\n";
+  print STDERR "$i:\n";
   my $stat = $statistics[$i];
   for my $key (sort {$a <=> $b} keys %$stat)
   {
-    print "$key $stat->{$key}\n";
+    if ($stat->{$key+1})
+    {
+      if ($stat->{$key+1}>$stat->{$key})
+      {
+        $stat->{$key+1}+=$stat->{$key};
+        delete $stat->{$key};
+      } else {
+        $stat->{$key}+=$stat->{$key+1};
+        delete $stat->{$key+1};
+      }
+    }
+    print STDERR "$key $stat->{$key}\n";
   }
 }
 my $seq;
-if (my $delemiter = $ARGV[0])
+if (defined $ARGV[0])
 {
-  print "Starting decoding: $delemiter\n";
-  my ($state,$time)=split /,/,$delemiter;
+  my ($state)=$ARGV[0];
+  my ($time) = reverse sort {$a <=> $b}  keys %{$statistics[$state]} ;
   my $start = 0;
+  my $counter=0;
   for my $data (@lengths)
   {
-    if ($start)
-    {
-      print $data->[0] . " => " . $data->[1] ."\n";
-      $seq.= ($data->[0].',') x $data->[1];
-    }
     if ($data->[0]==$state && $data->[1]==$time)
     {
       if ($start)
-      { last;
+      { 
+        print "$counter\n";
+        last;
       } else {
         $start =1;
+        print "$counter ";
       }
     }
+    $counter+=$data->[1];
   }
-  chop $seq;
-  # print "$seq\n";
-  my $bitcount=0;
-  my @binarydata;
-  for my $bits (reverse split /,/,$seq)
-  {
-    $binarydata[int($bitcount/8)]<<=1;
-    $binarydata[int($bitcount/8)]|=$bits;
-    $bitcount++;
-  }
-  $binarydata[int($bitcount/8)]<<= 8 - ($bitcount % 8) if $bitcount % 8;
-  my @chars = map { chr($_) } @binarydata; 
-  print STDERR join '',@chars;
-#  print STDERR "\ns\x04"; # send 4 times
-#  print STDERR chr(8-($bitcount % 8)) if $bitcount % 8;
-  print "$bitcount total, offset ".($bitcount % 8)." bits\n";
-  print ($bitcount/8 ," bytes (must be <= 63)\n");
 }
 
