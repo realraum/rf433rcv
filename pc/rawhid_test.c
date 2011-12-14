@@ -42,16 +42,22 @@ int main (int argc, char *argv[])
       return -3;
     printf("Clearing Buffer\n");  
     sendstr("c"); // clear the buffer  
-    buf[0]='f';  
-    while ( fread(buf+1, 1, 63, f) )
+    buf[0]='f'; 
+    size_t len;
+    while ( ( len = fread(buf+1, 1, 63, f)  ) )
     {
       
       rawhid_send(0, buf, 64, 1000); //fill the buffer
-      printf("Sending Buffer\n");
+      printf("Sending Buffer %d bytes\n",len);
+      for(i=0;i<len+1;i++)
+      {
+        printf("%02x ",(unsigned char) buf[i]);
+      }  
+      printf("\n");
     }
     printf("Executing Send command\n");
     sendstr("s\x10"); // send 4 times
-    size_t len = rawhid_recv(0, buf, 64, 255);
+    len = rawhid_recv(0, buf, 64, 255);
     for(i=0;i<len;i++)
     {
       printf("%02x ",(unsigned char) buf[i]);

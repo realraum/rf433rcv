@@ -29,12 +29,18 @@
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 #define RF_SEND_BUFFER_LEN_MAX 502
+
+union multiint {
+  uint16_t u16;
+  uint8_t u8[2];
+} __attribute__((packed));
+
 volatile uint16_t output_count=0;
 volatile uint8_t active_buffer=0;
 volatile uint16_t send_buffer=0;
 volatile uint8_t capture=0;
 volatile uint16_t rf_send_buf_pos=0; //count of bits in rf_send_buffer that should be sent
-volatile uint16_t rf_send_buf_len=0; //count of bits in rf_send_buffer that should be sent
+volatile union multiint rf_send_buf_len; //count of bits in rf_send_buffer that should be sent
 volatile uint8_t rf_send_count=0; // number of repetitions (times rf_send gets reloaded;
 uint8_t read_buffer[64]; // buffer for reading usb signals
 uint8_t write_buffer[2][64]; // buffer for writing usb signals
@@ -115,7 +121,8 @@ int main(void)
       {
         int8_t buffer_pos = 1;
         if(!rf_send_buf_offset) {
-          rf_send_buf_len=read_buffer[2] | (read_buffer[1]<<8);   //rf_send_buf_offset*8;
+          rf_send_buf_len.u8[1]=read_buffer[1];
+          rf_send_buf_len.u8[0]=read_buffer[2];
           buffer_pos+=2;
         }
         while(buffer_pos < r && rf_send_buf_offset<RF_SEND_BUFFER_LEN_MAX)
@@ -131,6 +138,9 @@ int main(void)
       }
       else if (read_buffer[0]=='s') //send
       {
+        write_buffer[0][0]=rf_send_buf_len.u8[1];
+        write_buffer[0][1]=rf_send_buf_len.u8[0];
+        usb_rawhid_send(write_buffer, 23);
         capture=0;
         rf_send_buf_pos=0;
         rf_send_count=read_buffer[1]+1;  
@@ -148,7 +158,7 @@ int main(void)
 ISR(TIMER0_COMPA_vect)
 {
   PORTF^=2;
-  if (rf_send_count && rf_send_buf_pos<rf_send_buf_len)
+  if (rf_send_count && rf_send_buf_pos<rf_send_buf_len.u16)
   {
     if ( rf_send_buffer[rf_send_buf_pos/8] & (1<< (rf_send_buf_pos%8)))
     {
