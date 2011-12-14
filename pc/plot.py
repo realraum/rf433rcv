@@ -6,6 +6,7 @@ import pylab
 for datastr in fileinput.input():
   data=numpy.array(list(datastr))
   pylab.plot(range(len(datastr)),data)
-  pylab.axis([0, len(datastr),-0.5, 1.5])
+  pylab.hold(True)
+  pylab.axis([0, len(datastr),-0.5, 3.5])
           
 pylab.show()
