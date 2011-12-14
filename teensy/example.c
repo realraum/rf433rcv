@@ -138,9 +138,9 @@ int main(void)
       }
       else if (read_buffer[0]=='s') //send
       {
-        write_buffer[0][0]=rf_send_buf_len.u8[1];
-        write_buffer[0][1]=rf_send_buf_len.u8[0];
-        usb_rawhid_send(write_buffer, 23);
+        //write_buffer[0][0]=rf_send_buf_len.u8[1];
+        //write_buffer[0][1]=rf_send_buf_len.u8[0];
+        //usb_rawhid_send(write_buffer, 23);
         capture=0;
         rf_send_buf_pos=0;
         rf_send_count=read_buffer[1]+1;  
