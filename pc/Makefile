@@ -36,10 +36,13 @@ endif
 OBJS = $(PROG).o hid.o
 
 
-all: $(TARGET) compress
+all: $(TARGET) compress uncompress
 
 compress: compress.c
 	$(CC) -o compress compress.c
+
+uncompress: uncompress.c
+	$(CC) -o uncompress uncompress.c
 
 $(PROG): $(OBJS)
 	$(CC) -o $(PROG) $(OBJS) $(LIBS)
