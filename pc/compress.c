@@ -4,7 +4,7 @@
 
 #define MAX_RAM 502
 
-void main()
+void main(int argc, char ** argv )
 {
   unsigned char input[MAX_RAM*8+1];
   unsigned char output[MAX_RAM];
@@ -29,6 +29,7 @@ void main()
       output[i/8] |= 1<< (i%8);
   }
   len_net=htons(len);
-  write(1,&len_net,sizeof(len_net));
+  if (argc==1)
+    write(1,&len_net,sizeof(len_net));
   write(1,output, (len%8)?len/8+1:len/8);
 }
