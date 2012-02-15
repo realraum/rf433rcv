@@ -14,4 +14,4 @@ else
   cat $FN2 > $FN3
 fi
 ./plot.py < $FN3
-./compress < $FN3
+cat $FN3
