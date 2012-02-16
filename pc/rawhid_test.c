@@ -43,6 +43,8 @@ int main (int argc, char *argv[])
   if (argc>1)
   {
     FILE * f = fopen (argv[1], "r");
+    if (strcmp("-",argv[1]) == 0)
+      f = stdin;
     if (!f)
       return -3;
     printf("Clearing Buffer\n");  
