@@ -3,7 +3,7 @@ use strict;
 
 my %remotes =
 (
-  schwarz => [\&schwarz, "01110101a1b1c1000000dddd"] ,
+  schwarz => [\&schwarz, "swia1b1c1000000dddd"] ,
   weiss => [\&weiss,"0c0d01010b0001010001010a"],
   pollin => [\&pollin,"0q0w0e0r0tbbbbbbbbbbaaaa"],
   rsl336t => [\&rsl336t,"switchbutton010101oo"],
@@ -31,9 +31,20 @@ sub main
 
 sub schwarz
 {
-  my ($swicht_cnt, $on) = @_ or die "parameters swicht_cnt {0|1}";
-  my $data = {a=>0, b=> 0, c=> 0, dddd=> ($on? "1100":"0011")};
-  $data->{chr(ord('a')+$swicht_cnt-1)}=1;
+  my ($switch, $button, $on) = @_ or die "parameters {a|b|c|d} {1|2|3} {0|1}";
+  my $switchdata = {
+    a => '11010101',
+    b => '01110101',
+    c => '01011101',
+    d => '01010111',
+  };
+  my $data = {
+    swi=> $switchdata->{$switch},
+    a=> 0, 
+    b=> 0, 
+    c=> 0, 
+    dddd=> ($on? "1100":"0011")};
+  $data->{chr(ord('a')+$button-1)}=1;
   return $data;
 }
 
