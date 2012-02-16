@@ -6,6 +6,7 @@ my %remotes =
   schwarz => [\&schwarz, "01110101a1b1c1000000dddd"] ,
   weiss => [\&weiss,"0c0d01010b0001010001010a"],
   pollin => [\&pollin,"0q0w0e0r0tbbbbbbbbbbaaaa"],
+  rsl336t => [\&rsl336t,"switchbutton010101oo"],
 );
 
 &main();
@@ -78,3 +79,19 @@ sub pollin
   return $data;
 }
 
+sub rsl336t
+{
+  my ($switch,$button,$on) = @_ or die "parameters {a|b|c|d} {a|b|c|d} {0|1}";
+  my %tasten = (
+    a => '00010101',
+    b => '01000101',
+    c => '01010001',
+    d => '01010100',
+  );
+  my $data = {
+              oo=> ($on?'01':'00'),
+              switch=> $tasten{$switch},
+              button=> $tasten{$button},
+              }; 
+  return $data;
+}
