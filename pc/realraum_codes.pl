@@ -5,7 +5,7 @@ my %remotes =
 (
   schwarz => [\&schwarz, "01110101a1b1c1000000dddd"] ,
   weiss => [\&weiss,"0c0d01010b0001010001010a"],
-  pollin => [\&pollin,"010101010100010101010001"],
+  pollin => [\&pollin,"0q0w0e0r0tbbbbbbbbbbaaaa"],
 );
 
 &main();
@@ -59,5 +59,22 @@ sub weiss
 
 sub pollin
 {
-
+  my ($switch,$taste,$on) = @_ or die "parameters 00000 {a|b|c|d} {0|1}";
+  my %tasten = (
+    a => '0001010101',
+    b => '0100010101',
+    c => '0101000101',
+    d => '0101010001',
+    e => '0101010100',
+  );
+  my $data = {
+              aaaa=> ($on?'0001':'0100'),
+              bbbbbbbbbb=> $tasten{$taste},
+              }; 
+  my @switches = split //,$switch;
+  @switches =  map { $_?'0':'1'} @switches;
+  @{$data}{qw/q w e r t/}=@switches;
+#  print join ',',%$data;
+  return $data;
 }
+
