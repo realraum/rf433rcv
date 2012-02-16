@@ -4,8 +4,8 @@ use strict;
 my %remotes =
 (
   schwarz => [\&schwarz, "01110101a1b1c1000000dddd"] ,
-  weiss => \&weiss,
-  pollin => \&pollin,
+  weiss => [\&weiss,"0c0d01010b0001010001010a"],
+  pollin => [\&pollin,"010101010100010101010001"],
 );
 
 &main();
@@ -38,7 +38,23 @@ sub schwarz
 
 sub weiss
 {
-
+  my ($switch,$taste,$on) = @_ or die "parameters {a|b|c|d} {1|2} {0|1}";
+  my $data = {
+              a=> ($on?'1':'0'),
+              b=> ($taste==1?'0':'1'),
+              c=>0,
+              d=>0,
+              }; 
+  if($switch eq 'b')
+  {
+    $data->{c}=1;
+  } elsif ($switch eq 'c') {
+    $data->{d}=1;
+  } elsif ($switch eq 'd') {
+    $data->{c}=1;
+    $data->{d}=1;
+  }
+  return $data;
 }
 
 sub pollin
