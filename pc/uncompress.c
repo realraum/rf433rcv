@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define MAX_RAM 502
+//#define MAX_RAM 502
+#define MAX_RAM 1004
 
 void main()
 {

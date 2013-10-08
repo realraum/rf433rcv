@@ -444,7 +444,7 @@ gccversion :
 # Program the device.  
 program: $(TARGET).hex $(TARGET).eep
 	../pc/reset || true
-	~/teensy_loader_cli/teensy_loader_cli -mmcu=atmega32u4 -w $(TARGET).hex
+	~/realraum/teensy/teensy_loader_cli/teensy_loader_cli -mmcu=atmega32u4 -w $(TARGET).hex
 
 
 # Generate avr-gdb config/init file which does the following:

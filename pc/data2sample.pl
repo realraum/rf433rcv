@@ -6,7 +6,6 @@ my @input= split //,<>;
 
 print 1 x $base;
 print 0 x (31 * $base);
-
 for my $current (@input)
 {
   if ($current)
@@ -18,3 +17,4 @@ for my $current (@input)
     print 0 x (3*$base);
   }
 }
+
